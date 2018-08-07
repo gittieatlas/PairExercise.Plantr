@@ -7,10 +7,9 @@ const {
   vegetable_plot: VegetablePlot
 } = db.models;
 
-let vegetables, gardeners, plots;
-
-db.sync({ force: true })
-  .then(() => {
+const seed = async () => {
+  try {
+    await db.sync({ force: true });
     const vegetableData = [
       {
         name: 'Carrot',
@@ -25,11 +24,9 @@ db.sync({ force: true })
         color: 'green'
       }
     ];
-    return Vegetable.bulkCreate(vegetableData, { returning: true });
-  })
-  .then(createdVegetables => {
-    vegetables = createdVegetables;
-    const [carrot, tomato, pepper] = vegetables;
+    const [carrot, tomato, pepper] = await Vegetable.bulkCreate(vegetableData, {
+      returning: true
+    });
     const gardenerData = [
       {
         name: 'McGregor',
@@ -47,11 +44,12 @@ db.sync({ force: true })
         favoriteVegetableId: tomato.id
       }
     ];
-    return Gardener.bulkCreate(gardenerData, { returning: true });
-  })
-  .then(createdGardeners => {
-    gardeners = createdGardeners;
-    const [mcgregor, hashimoto, giancarlo] = gardeners;
+    const [mcgregor, hashimoto, giancarlo] = await Gardener.bulkCreate(
+      gardenerData,
+      {
+        returning: true
+      }
+    );
     const plotData = [
       {
         size: 20,
@@ -69,12 +67,10 @@ db.sync({ force: true })
         gardenerId: giancarlo.id
       }
     ];
-    return Plot.bulkCreate(plotData, { returning: true });
-  })
-  .then(createdPlots => {
-    plots = createdPlots;
-    const [mcgregorPlot, hashimotoPlot, giancarloPlot] = plots;
-    const [carrot, tomato, pepper] = vegetables;
+    const [mcgregorPlot, hashimotoPlot, giancarloPlot] = await Plot.bulkCreate(
+      plotData,
+      { returning: true }
+    );
     const vegetablePlotData = [
       {
         vegetableId: carrot.id,
@@ -105,15 +101,14 @@ db.sync({ force: true })
         plotId: giancarloPlot.id
       }
     ];
-    return VegetablePlot.bulkCreate(vegetablePlotData);
-  })
-  .then(() => {
+    await VegetablePlot.bulkCreate(vegetablePlotData);
     console.log('Database synced!');
-  })
-  .catch(err => {
+  } catch (err) {
     console.log('Disaster! Something went wrong! ');
     console.log(err);
-  })
-  .finally(() => {
+  } finally {
     db.close();
-  });
+  }
+};
+
+seed();
